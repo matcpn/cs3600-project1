@@ -19,7 +19,7 @@ int main(int argc, char*argv[]) {
   USE(argv);
   setvbuf(stdout, NULL, _IONBF, 0); 
   
-  // Main loop that reads a command and executes ijfdt
+  // Main loop that reads a command and executes it
   while (1) {         
     // You should issue the prompt here
       
