@@ -1,0 +1,289 @@
+./test
+Milestone tests
+  Trying with script 'ls'                                   [FAIL]
+    Command was:
+ls
+    Diff in expected output:
+ caponem@gunbuster:/home/caponem/CS3600 Systems/cs3600-projec <
+3600sh.c						      <
+3600sh.h						      <
+foo.txt							      <
+Makefile						      <
+test							      <
+So long and thanks for all the fish!				So long and thanks for all the fish!
+
+  Trying with script 'ls ~/tmp\ncat /etc/hostname'          [FAIL]
+    Command was:
+ls ~/tmp\ncat /etc/hostname
+    Diff in expected output:
+ caponem@gunbuster:/home/caponem/CS3600 Systems/cs3600-projec <
+ caponem@gunbuster:/home/caponem/CS3600 Systems/cs3600-projec <
+So long and thanks for all the fish!				So long and thanks for all the fish!
+
+  Trying with script 'uname -a\ntime\n/bin/ls'              [FAIL]
+    Command was:
+uname -a\ntime\n/bin/ls
+    Diff in expected output:
+ caponem@gunbuster:/home/caponem/CS3600 Systems/cs3600-projec <
+ caponem@gunbuster:/home/caponem/CS3600 Systems/cs3600-projec <
+       [--portability] [--format=format] [--output=file] [--v <
+       [--quiet] [--help] command [arg...]		      <
+ caponem@gunbuster:/home/caponem/CS3600 Systems/cs3600-projec <
+3600sh.c						      <
+3600sh.h						      <
+foo.txt							      <
+Makefile						      <
+test							      <
+So long and thanks for all the fish!				So long and thanks for all the fish!
+
+  Trying with script 'stat /home\n'                         [FAIL]
+    Command was:
+stat /home\n
+    Diff in expected output:
+ caponem@gunbuster:/home/caponem/CS3600 Systems/cs3600-projec |	So long and thanks for all the fish!
+  Size: 0         	Blocks: 0          IO Block: 1024   d <
+Device: 15h/21d	Inode: 10800       Links: 7		      <
+Access: (0755/drwxr-xr-x)  Uid: (    0/    root)   Gid: (     <
+Access: 2014-09-18 18:57:40.111501992 -0400		      <
+Modify: 2014-09-18 18:57:38.463503056 -0400		      <
+Change: 2014-09-18 16:19:54.902828811 -0400		      <
+ Birth: -						      <
+ caponem@gunbuster:/home/caponem/CS3600 Systems/cs3600-projec <
+
+  Trying with script 'opdpfo\nmfdoimfo'                     [FAIL]
+    Command was:
+opdpfo\nmfdoimfo
+    Diff in expected output:
+ caponem@gunbuster:/home/caponem/CS3600 Systems/cs3600-projec <
+ caponem@gunbuster:/home/caponem/CS3600 Systems/cs3600-projec <
+So long and thanks for all the fish!				So long and thanks for all the fish!
+
+  Trying with script 'ls a b c d e f g h i\n'               [FAIL]
+    Command was:
+ls a b c d e f g h i\n
+    Diff in expected output:
+ caponem@gunbuster:/home/caponem/CS3600 Systems/cs3600-projec |	So long and thanks for all the fish!
+ls: cannot access b: No such file or directory		      <
+ls: cannot access c: No such file or directory		      <
+ls: cannot access d: No such file or directory		      <
+ls: cannot access e: No such file or directory		      <
+ls: cannot access f: No such file or directory		      <
+ls: cannot access g: No such file or directory		      <
+ls: cannot access h: No such file or directory		      <
+ls: cannot access i: No such file or directory		      <
+ caponem@gunbuster:/home/caponem/CS3600 Systems/cs3600-projec <
+
+  Trying with script 'pwd\nls\npwd\nls\nuname -a\nuname-a...[FAIL]
+    Command was:
+pwd\nls\npwd\nls\nuname -a\nuname-a\nls\n
+    Diff in expected output:
+ caponem@gunbuster:/home/caponem/CS3600 Systems/cs3600-projec |	So long and thanks for all the fish!
+ caponem@gunbuster:/home/caponem/CS3600 Systems/cs3600-projec <
+3600sh.c						      <
+3600sh.h						      <
+foo.txt							      <
+Makefile						      <
+test							      <
+ caponem@gunbuster:/home/caponem/CS3600 Systems/cs3600-projec <
+ caponem@gunbuster:/home/caponem/CS3600 Systems/cs3600-projec <
+3600sh.c						      <
+3600sh.h						      <
+foo.txt							      <
+Makefile						      <
+test							      <
+ caponem@gunbuster:/home/caponem/CS3600 Systems/cs3600-projec <
+ caponem@gunbuster:/home/caponem/CS3600 Systems/cs3600-projec <
+ caponem@gunbuster:/home/caponem/CS3600 Systems/cs3600-projec <
+3600sh.c						      <
+3600sh.h						      <
+foo.txt							      <
+Makefile						      <
+test							      <
+ caponem@gunbuster:/home/caponem/CS3600 Systems/cs3600-projec <
+
+  Trying with script 'whoami\nwho am i\nwhoami who am i'    [FAIL]
+    Command was:
+whoami\nwho am i\nwhoami who am i
+    Diff in expected output:
+ caponem@gunbuster:/home/caponem/CS3600 Systems/cs3600-projec <
+ caponem@gunbuster:/home/caponem/CS3600 Systems/cs3600-projec <
+Try `whoami --help' for more information.		      <
+So long and thanks for all the fish!				So long and thanks for all the fish!
+
+  Trying with script 'ls /bin > /tmp/cs3600.project1.XD1F...[FAIL]
+    Command was:
+ls /bin > /tmp/cs3600.project1.XD1FjS\ncat /tmp/cs3600.project1.XD1FjS\n\n
+    Diff in expected output:
+ caponem@gunbuster:/home/caponem/CS3600 Systems/cs3600-projec |	So long and thanks for all the fish!
+bunzip2							      <
+busybox							      <
+bzcat							      <
+bzcmp							      <
+bzdiff							      <
+bzegrep							      <
+bzexe							      <
+bzfgrep							      <
+bzgrep							      <
+bzip2							      <
+bzip2recover						      <
+bzless							      <
+bzmore							      <
+cat							      <
+chacl							      <
+chgrp							      <
+chmod							      <
+chown							      <
+chvt							      <
+cp							      <
+cpio							      <
+csh							      <
+dash							      <
+date							      <
+dbus-cleanup-sockets					      <
+dbus-daemon						      <
+dbus-uuidgen						      <
+dd							      <
+df							      <
+dir							      <
+dmesg							      <
+dnsdomainname						      <
+domainname						      <
+dumpkeys						      <
+echo							      <
+ed							      <
+egrep							      <
+false							      <
+fgconsole						      <
+fgrep							      <
+findmnt							      <
+fuser							      <
+fusermount						      <
+getfacl							      <
+grep							      <
+gunzip							      <
+gzexe							      <
+gzip							      <
+hostname						      <
+init-checkconf						      <
+initctl2dot						      <
+ip							      <
+kbd_mode						      <
+kill							      <
+ksh							      <
+less							      <
+lessecho						      <
+lessfile						      <
+lesskey							      <
+lesspipe						      <
+ln							      <
+loadkeys						      <
+login							      <
+lowntfs-3g						      <
+ls							      <
+lsblk							      <
+lsmod							      <
+mkdir							      <
+mknod							      <
+mktemp							      <
+more							      <
+mount							      <
+mountpoint						      <
+mt							      <
+mt-gnu							      <
+mv							      <
+nano							      <
+nc							      <
+nc.openbsd						      <
+netcat							      <
+netstat							      <
+nisdomainname						      <
+ntfs-3g							      <
+ntfs-3g.probe						      <
+ntfs-3g.secaudit					      <
+ntfs-3g.usermap						      <
+ntfscat							      <
+ntfsck							      <
+ntfscluster						      <
+ntfscmp							      <
+ntfsdecrypt						      <
+ntfsdump_logfile					      <
+ntfsfix							      <
+ntfsinfo						      <
+ntfsls							      <
+ntfsmftalloc						      <
+ntfsmove						      <
+ntfstruncate						      <
+ntfswipe						      <
+open							      <
+openvt							      <
+pidof							      <
+ping							      <
+ping6							      <
+plymouth						      <
+plymouth-upstart-bridge					      <
+ps							      <
+pwd							      <
+rbash							      <
+readlink						      <
+rm							      <
+rmdir							      <
+rnano							      <
+running-in-container					      <
+run-parts						      <
+rzsh							      <
+sed							      <
+setfacl							      <
+setfont							      <
+setserial						      <
+setupcon						      <
+sh							      <
+sh.distrib						      <
+sleep							      <
+ss							      <
+static-sh						      <
+stty							      <
+su							      <
+sync							      <
+tailf							      <
+tar							      <
+tcsh							      <
+tempfile						      <
+touch							      <
+true							      <
+ulockmgr_server						      <
+umount							      <
+uname							      <
+uncompress						      <
+unicode_start						      <
+vdir							      <
+vmmouse_detect						      <
+which							      <
+whiptail						      <
+ypdomainname						      <
+zcat							      <
+zcmp							      <
+zdiff							      <
+zegrep							      <
+zfgrep							      <
+zforce							      <
+zgrep							      <
+zless							      <
+zmore							      <
+znew							      <
+zsh							      <
+zsh4							      <
+ caponem@gunbuster:/home/caponem/CS3600 Systems/cs3600-projec <
+
+  Trying with script 'wc < /tmp/cs3600.project1.XD1FjS > ...[FAIL]
+    Command was:
+wc < /tmp/cs3600.project1.XD1FjS > /tmp/cs3600.project1.3SI8tz\ncat /tmp/cs3600.project1.3SI8tz
+    Diff in expected output:
+ caponem@gunbuster:/home/caponem/CS3600 Systems/cs3600-projec <
+So long and thanks for all the fish!				So long and thanks for all the fish!
+
+  Trying with script 'ls /mfmfoifoi 2> /tmp/cs3600.projec...[FAIL]
+    Command was:
+ls /mfmfoifoi 2> /tmp/cs3600.project1.XD1FjS\ncat /tmp/cs3600.project1.XD1FjS
+    Diff in expected output:
+ caponem@gunbuster:/home/caponem/CS3600 Systems/cs3600-projec <
+So long and thanks for all the fish!				So long and thanks for all the fish!
