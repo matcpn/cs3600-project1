@@ -11,7 +11,12 @@
 #include "3600sh.h"
 
 #define USE(x) (x) = (x)
+<<<<<<< Updated upstream
 #define MAX_HOST_CHARS 64
+=======
+#define MAXLINE 200 
+#define MAXARGS 20
+>>>>>>> Stashed changes
 
 int main(int argc, char*argv[]) {
   // Code which sets stdout to be unbuffered
@@ -19,7 +24,10 @@ int main(int argc, char*argv[]) {
   USE(argc);
   USE(argv);
   setvbuf(stdout, NULL, _IONBF, 0); 
-  
+  char cmd[MAXLINE];
+  char *childargv[MAXARGS];
+  int childargc;
+
   // Main loop that reads a command and executes it
   while (1) {         
     // You should issue the prompt here
@@ -33,7 +41,8 @@ int main(int argc, char*argv[]) {
     free(test);
     free(host);  
     // You should read in the command and execute it here
-    
+    getargs(cmd, &childargc, childargv);
+
     // You should probably remove this; right now, it
     // just exits
     //do_exit();
@@ -59,28 +68,16 @@ static void getargs(char cmd[], int *argcp, char *argv[])
     char *end;
     int i = 0;
 
-    /* fgets creates null-terminated string. stdin is pre-defined C constant
-     *   for standard intput.  feof(stdin) tests for file:end-of-file.
-     */
+    //reads from standard in
     if (fgets(cmd, MAXLINE, stdin) == NULL && feof(stdin)) {
         printf("Couldn't read from standard input. End of file? Exiting ...\n");
-        exit(1);  /* any non-zero value for exit means failure. */
+        exit(1); 
     }
-    while ( (cmdp = getword(cmdp, &end)) != NULL ) { /* end is output param */
-        /* getword converts word into null-terminated string */
-        if (*cmdp == '#')
-	    break;
-        if (strcmp(cmdp, "./myshell") != 0) {
-            if (*cmdp == '.' && *(cmdp + 1) == '/') {
-                argv[0] = "./";
-                i++;
-                cmdp = cmdp + 2;
-            }
-        }
+    //parse the string into usable arguments
+    while ((cmdp = getword(cmdp, &end)) != NULL ) {
 	argv[i++] = cmdp;
-        /* "end" brings us only to the '\0' at end of string */
 	cmdp = end + 1;
     }
-    argv[i] = NULL; /* Create additional null word at end for safety. */
+    argv[i] = NULL;
     *argcp = i;
 }
