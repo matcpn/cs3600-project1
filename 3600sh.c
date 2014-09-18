@@ -11,6 +11,7 @@
 #include "3600sh.h"
 
 #define USE(x) (x) = (x)
+#define MAX_HOST_CHARS 64
 
 int main(int argc, char*argv[]) {
   // Code which sets stdout to be unbuffered
@@ -23,10 +24,11 @@ int main(int argc, char*argv[]) {
   while (1) {         
     // You should issue the prompt here
     char* test = calloc(PATH_MAX, sizeof(char));
-    char* host = calloc(64, sizeof(char));
-    gethostname(host,64);
+    char* host = calloc(MAX_HOST_CHARS, sizeof(char));
+    gethostname(host, MAX_HOST_CHARS);
+	getcwd(test, 1024);
 
-    printf("%s@%s:%s> ", getenv("USER"), host, getcwd(test, 1024));
+    printf("%s@%s:%s> ", getenv("USER"), host, test);
     
     free(test);
     free(host);  
