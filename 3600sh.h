@@ -25,6 +25,7 @@
 #include <linux/limits.h>
 
 void do_exit();
-void getargs(char cmd[], int *argcp, char *argv[]);
+void getargs(char *cmd, int *argcp, char *argv[]);
+char* getcmd(char *cmd);
 
 #endif 
