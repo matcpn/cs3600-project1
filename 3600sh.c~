@@ -21,13 +21,14 @@ int main(int argc, char*argv[]) {
   USE(argc);
   USE(argv);
   setvbuf(stdout, NULL, _IONBF, 0); 
-  char *cmd = calloc(MAX_LINE_SIZE, sizeof(char));
+  
   char *childargv[MAXARGS];
   int childargc;
 
   // Main loop that reads a command and executes it
   while (1) {         
     // You should issue the prompt here
+    char *cmd = calloc(MAX_LINE_SIZE, sizeof(char));
     char test[PATH_MAX];
     char host[MAX_HOST_CHARS];
     gethostname(host, MAX_HOST_CHARS);
@@ -38,13 +39,13 @@ int main(int argc, char*argv[]) {
  
     // You should read in the command and execute it here
     getargs(cmd, &childargc, childargv);
-
+	execute(childargv);
     // You should probably remove this; right now, it
     // just exits
     free(cmd);
     //do_exit();
   }
-
+  
   return 0;
 }
 
@@ -61,7 +62,6 @@ void do_exit() {
 
 void getargs(char *cmd, int *argcp, char *argv[])
 {
-    char* first_cmd;
     int i = 0;
 
     //reads from standard in
@@ -70,24 +70,37 @@ void getargs(char *cmd, int *argcp, char *argv[])
         exit(1); 
     }
     //parse the string into flags
-    while ( (first_cmd = getcmd(cmd)) == NULL ) {
-	
-    }
-argv[i] = NULL; 
+    //while ( getcmd(cmd, argv) == 0 ) {
+	//	i++;
+    //}
+    getcmd(cmd, argv);
+	argv[i] = NULL; 
     *argcp = i;
 }
 
-char* getcmd(char* cmd) 
+int getcmd(char* cmd, char* argv[]) 
 {
-	char* com = calloc(50, sizeof(char));
     int i = 0;
     while (*(cmd + i) != ' ' && *(cmd + i) != '\n') { 
 		i++;    
 	}
-    strncat(com, cmd, i);
-    *(com + i + 1) = '\0';
-    char* rtn = com;
-    free(com);
-    return rtn;
+    strncat(argv[0], cmd, i);
+    return 1;
 }
 
+void execute(char* childargv[]) 
+{
+	pid_t p_id = fork();
+	if (p_id == -1) {
+		printf(" (fork failed)\n");
+	}
+    if (p_id == 0) {
+		if (-1 == execvp(childargv[0], (char * const*) "")) {
+			printf("Error: Command not found. %s\n", childargv[0]);
+		}
+	}
+	else {
+		waitpid(p_id, NULL, 0);
+	}	
+	return;
+}

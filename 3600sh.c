@@ -39,7 +39,7 @@ int main(int argc, char*argv[]) {
  
     // You should read in the command and execute it here
     getargs(cmd, &childargc, childargv);
-
+	execute(childargv);
     // You should probably remove this; right now, it
     // just exits
     free(cmd);
@@ -74,7 +74,7 @@ void getargs(char *cmd, int *argcp, char *argv[])
     while ( (first_cmd = getcmd(cmd)) == NULL ) {
 	
     }
-	argv[i] = NULL; 
+	argv[i] = first_cmd; 
     *argcp = i;
 }
 
@@ -86,9 +86,23 @@ char* getcmd(char* cmd)
 		i++;    
 	}
     strncat(com, cmd, i);
-    *(com + i + 1) = '\0';
-    char* rtn = com;
-    free(com);
-    return rtn;
+    *(com + i) = '\0';
+    return com;
 }
 
+void execute(char* childargv[]) 
+{
+	pid_t p_id = fork();
+	if (p_id == -1) {
+		printf(" (fork failed)\n");
+	}
+    if (p_id == 0) {
+		if (-1 == execvp(childargv[0], (char * const*) "")) {
+			printf("Error: Command not found. %s\n", childargv[0]);
+		}
+	}
+	else {
+		waitpid(p_id, NULL, 0);
+	}	
+	return;
+}

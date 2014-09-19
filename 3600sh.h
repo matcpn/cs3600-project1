@@ -27,5 +27,6 @@
 void do_exit();
 void getargs(char *cmd, int *argcp, char *argv[]);
 char* getcmd(char *cmd);
+void execute(char* cmd[]);
 
 #endif 
