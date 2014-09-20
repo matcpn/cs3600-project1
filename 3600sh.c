@@ -22,19 +22,19 @@ int main(int argc, char*argv[]) {
   USE(argv);
   setvbuf(stdout, NULL, _IONBF, 0); 
   
+  char *cmd = calloc(MAX_LINE_SIZE, sizeof(char));
   char *childargv[MAXARGS];
   int childargc;
 
   // Main loop that reads a command and executes it
   while (1) {         
     // You should issue the prompt here
-    char *cmd = calloc(MAX_LINE_SIZE, sizeof(char));
-    char test[PATH_MAX];
+    char dir[PATH_MAX];
     char host[MAX_HOST_CHARS];
     gethostname(host, MAX_HOST_CHARS);
-	getcwd(test, 1024);
+	getcwd(dir, 1024);
 
-    printf("%s@%s:%s> ", getenv("USER"), host, test);
+    printf("%s@%s:%s> ", getenv("USER"), host, dir);
     
  
     // You should read in the command and execute it here
@@ -42,7 +42,6 @@ int main(int argc, char*argv[]) {
 	execute(childargv);
     // You should probably remove this; right now, it
     // just exits
-    free(cmd);
     //do_exit();
   }
   
@@ -62,7 +61,7 @@ void do_exit() {
 
 void getargs(char *cmd, int *argcp, char *argv[])
 {
-    char* first_cmd;
+    char* end;
     int i = 0;
 
     //reads from standard in
@@ -71,23 +70,26 @@ void getargs(char *cmd, int *argcp, char *argv[])
         exit(1); 
     }
     //parse the string into flags
-    while ( (first_cmd = getcmd(cmd)) == NULL ) {
-	
+    while ( (cmd = getcmd(cmd, &end)) != NULL ) {
+       argv[i++] = cmd;
+       cmd = end + 1; // get past the '\0'
     }
-	argv[i] = first_cmd; 
-    *argcp = i;
+	argv[i++] = NULL; //put a null after the last argument
+  *argcp = i;
 }
 
-char* getcmd(char* cmd) 
+char* getcmd(char* beginning, char** end_of_cmd) 
 {
-	char* com = calloc(50, sizeof(char));
-    int i = 0;
-    while (*(cmd + i) != ' ' && *(cmd + i) != '\n') { 
-		i++;    
-	}
-    strncat(com, cmd, i);
-    *(com + i) = '\0';
-    return com;
+  char* end = beginning; //make a new pointer to show where the end will be
+	while (*beginning == ' ')
+    beginning++; //get rid of spaces
+  while ( *end != '\0' && *end != '\n' && *end != ' ' )
+        end++; // find the end of the command (either a space, null, or newline)
+  if (end == beginning)
+    return NULL; //all words parsed 
+  *end = '\0'; //put a null terminator after the command
+  *end_of_cmd = end;
+  return beginning; //begin is now the argument/flag without any spaces
 }
 
 void execute(char* childargv[]) 
@@ -97,7 +99,7 @@ void execute(char* childargv[])
 		printf(" (fork failed)\n");
 	}
     if (p_id == 0) {
-		if (-1 == execvp(childargv[0], (char * const*) "")) {
+		if (-1 == execvp(childargv[0], childargv)) {
 			printf("Error: Command not found. %s\n", childargv[0]);
 		}
 	}
