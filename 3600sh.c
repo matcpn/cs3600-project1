@@ -32,18 +32,17 @@ int main(int argc, char*argv[]) {
     char dir[PATH_MAX];
     char host[MAX_HOST_CHARS];
     gethostname(host, MAX_HOST_CHARS);
-	getcwd(dir, 1024);
+	  getcwd(dir, 1024);
 
     printf("%s@%s:%s> ", getenv("USER"), host, dir);
     
  
     // You should read in the command and execute it here
     getargs(cmd, &childargc, childargv);
-	execute(childargv);
-    // You should probably remove this; right now, it
-    // just exits
-    //do_exit();
+	  execute(childargv);
+    do_exit();
   }
+
   
   return 0;
 }
@@ -70,21 +69,36 @@ void getargs(char *cmd, int *argcp, char *argv[])
         exit(1); 
     }
     //parse the string into flags
-    while ( (cmd = getcmd(cmd, &end)) != NULL ) {
+    while ( (cmd = getcmd(cmd, &end, argv, argcp)) != NULL ) {
        argv[i++] = cmd;
+       *argcp = i;
        cmd = end + 1; // get past the '\0'
     }
 	argv[i++] = NULL; //put a null after the last argument
   *argcp = i;
 }
 
-char* getcmd(char* beginning, char** end_of_cmd) 
+char* getcmd(char* beginning, char** end_of_cmd, char *argv[], int *argcp) 
 {
   char* end = beginning; //make a new pointer to show where the end will be
 	while (*beginning == ' ')
     beginning++; //get rid of spaces
-  while ( *end != '\0' && *end != '\n' && *end != ' ' )
-        end++; // find the end of the command (either a space, null, or newline)
+  while ( *end != '\0' && *end != '\n' && *end != ' ' ) {
+    if (*end == '\\' && *(end + 1) == 'n') {
+      *end = '\0';
+      end++;
+      argv[*argcp] = beginning;
+      execute(argv);
+      end++;
+      for (int i = 0; i < *argcp + 1; i++) {
+        argv[i] = NULL;
+      }
+      *argcp = 1;
+      *end_of_cmd = end;
+    }
+    end++; // find the end of the command (either a space, null, or newline)
+
+  }
   if (end == beginning)
     return NULL; //all words parsed 
   *end = '\0'; //put a null terminator after the command
@@ -98,10 +112,13 @@ void execute(char* childargv[])
 	if (p_id == -1) {
 		printf(" (fork failed)\n");
 	}
-    if (p_id == 0) {
-		if (-1 == execvp(childargv[0], childargv)) {
-			printf("Error: Command not found. %s\n", childargv[0]);
-		}
+  else if (p_id == 0) {
+    if (strcmp(childargv[0], "exit") == 0) {
+       do_exit();
+    }
+  	else if (-1 == execvp(childargv[0], childargv)) {
+  		printf("Error: Command not found. %s\n", childargv[0]);
+  	}
 	}
 	else {
 		waitpid(p_id, NULL, 0);
