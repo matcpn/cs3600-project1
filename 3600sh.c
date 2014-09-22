@@ -32,7 +32,9 @@ int main(int argc, char*argv[]) {
     print_prompt();    
  
     // You should read in the command and execute it here
-    getargs(cmd, &childargc, childargv);
+    while (!feof(stdin) && fgets(cmd, MAX_LINE_SIZE, stdin) != NULL) {
+        getargs(cmd, &childargc, childargv); 
+    }
 	  parse_argument_array(&childargc, childargv);
     do_exit();
   }
@@ -66,13 +68,11 @@ void getargs(char *cmd, int *argcp, char *argv[])
     char* end;
 
     //reads from standard in
-    if (fgets(cmd, MAX_LINE_SIZE, stdin) == NULL && feof(stdin)) {
-        printf("Couldn't read from standard input. End of file? Exiting ...\n");
-        exit(1); 
-    }
+
     //parse the string into flags
     while ( (cmd = getcmd(cmd, &end, argv, argcp)) != NULL ) {
-       argv[*argcp] = cmd;
+       argv[*argcp] = calloc(100, sizeof(char));
+       strcpy(argv[*argcp],cmd);
        (*argcp)++;
        cmd = end + 1; // get past the '\0'
     }
@@ -84,15 +84,15 @@ char* getcmd(char* beginning, char** end_of_cmd, char *argv[], int *argcp)
   char* end = beginning; //make a new pointer to show where the end will be
 	while (*beginning == ' ')
     beginning++; //get rid of spaces
-  while ( *end != '\0' && *end != '\n' && *end != ' ' ) {
-    if (*end == '\\' && *(end + 1) == 'n') {
+  while ( *end != '\0' && *end != ' ' ) {
+    if (*end == '\n') {
       *end = '\0';
-      argv[*argcp] = beginning;
+      argv[*argcp] = calloc(100, sizeof(char));
+      strcpy(argv[*argcp], beginning);
       (*argcp)++;
       argv[*argcp] = "\n";
       (*argcp)++;
-      end = end + 2;
-      beginning = end;
+      return NULL;
     }
     end++; // find the end of the command (either a space, null, or newline)
 
