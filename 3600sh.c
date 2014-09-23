@@ -88,7 +88,6 @@ char* getcmd(char* beginning, char** end_of_cmd, char *argv[], int *argcp)
     if (*end == '\n') {
       *end = '\0';
       argv[*argcp] = calloc(100, sizeof(char));
-      printf("%s", beginning);
       strcpy(argv[*argcp], beginning);
       (*argcp)++;
       argv[*argcp] = "\n";
