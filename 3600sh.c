@@ -33,7 +33,10 @@ int main(int argc, char*argv[]) {
  
     // You should read in the command and execute it here
     while (!feof(stdin) && fgets(cmd, MAX_LINE_SIZE, stdin) != NULL) {
-        getargs(cmd, &childargc, childargv); 
+        getargs(cmd, &childargc, childargv);
+        for (int i = 0; i < MAX_LINE_SIZE; i++) {
+        	*(cmd + i) = '\0';
+        }
     }
     parse_argument_array(&childargc, childargv);
     do_exit();
