@@ -35,7 +35,7 @@ int main(int argc, char*argv[]) {
     while (!feof(stdin) && fgets(cmd, MAX_LINE_SIZE, stdin) != NULL) {
         getargs(cmd, &childargc, childargv); 
     }
-	  parse_argument_array(&childargc, childargv);
+    parse_argument_array(&childargc, childargv);
     do_exit();
   }
 
@@ -76,18 +76,19 @@ void getargs(char *cmd, int *argcp, char *argv[])
        (*argcp)++;
        cmd = end + 1; // get past the '\0'
     }
-	argv[*argcp] = NULL; //put a null after the last argument
+  argv[*argcp] = NULL; //put a null after the last argument
 }
 
 char* getcmd(char* beginning, char** end_of_cmd, char *argv[], int *argcp) 
 {
   char* end = beginning; //make a new pointer to show where the end will be
-	while (*beginning == ' ')
+  while (*beginning == ' ')
     beginning++; //get rid of spaces
   while ( *end != '\0' && *end != ' ' ) {
     if (*end == '\n') {
       *end = '\0';
       argv[*argcp] = calloc(100, sizeof(char));
+      printf("%s", beginning);
       strcpy(argv[*argcp], beginning);
       (*argcp)++;
       argv[*argcp] = "\n";
@@ -107,23 +108,113 @@ char* getcmd(char* beginning, char** end_of_cmd, char *argv[], int *argcp)
 void execute(char* childargv[]) 
 {
   pid_t p_id = fork();
-  	if (p_id == -1) {
-  		printf(" (fork failed)\n");
-   	}
+    if (p_id == -1) {
+      printf(" (fork failed)\n");
+    }
     else if (p_id == 0) {
       if (strcmp(childargv[0], "exit") == 0) {
          do_exit();
       }
-    	else if (-1 == execvp(childargv[0], childargv)) {
-    		printf("Error: Command not found.\n");
+      else if (-1 == execvp(childargv[0], childargv)) {
+        printf("Error: Command not found.\n");
         _Exit(EXIT_FAILURE);
-    	}
-  	}
-  	else {
-  		waitpid(p_id, NULL, 0);
-  	}	
+      }
+    }
+    else {
+      waitpid(p_id, NULL, 0);
+    } 
   return;
 }
+
+void execute_with_output_redir(char* childargv[], char* file) 
+{
+  pid_t p_id = fork();
+    if (p_id == -1) {
+      printf(" (fork failed)\n");
+    }
+    else if (p_id == 0) {
+      if (strcmp(childargv[0], "exit") == 0) {
+         do_exit();
+      }
+      freopen(file, "w", stdout);
+      if (-1 == execvp(childargv[0], childargv)) {
+        printf("Error: Command not found.\n");
+        _Exit(EXIT_FAILURE);
+      }
+    }
+    else {
+      waitpid(p_id, NULL, 0);
+    } 
+  return;
+}
+
+void execute_with_input_redir(char* childargv[], char* file) 
+{
+  pid_t p_id = fork();
+    if (p_id == -1) {
+      printf(" (fork failed)\n");
+    }
+    else if (p_id == 0) {
+      if (strcmp(childargv[0], "exit") == 0) {
+         do_exit();
+      }
+      freopen(file, "r", stdin);
+      if (-1 == execvp(childargv[0], childargv)) {
+        printf("Error: Command not found.\n");
+        _Exit(EXIT_FAILURE);
+      }
+    }
+    else {
+      waitpid(p_id, NULL, 0);
+    } 
+  return;
+}
+
+void execute_with_error_redir(char* childargv[], char* file) 
+{
+  pid_t p_id = fork();
+    if (p_id == -1) {
+      printf(" (fork failed)\n");
+    }
+    else if (p_id == 0) {
+      if (strcmp(childargv[0], "exit") == 0) {
+         do_exit();
+      }
+      freopen(file, "w", stderr);
+      if (-1 == execvp(childargv[0], childargv)) {
+        printf("Error: Command not found.\n");
+        _Exit(EXIT_FAILURE);
+      }
+    }
+    else {
+      waitpid(p_id, NULL, 0);
+    } 
+  return;
+}
+
+void execute_with_input_and_output_redir(char* childargv[], char* filein, char* fileout) 
+{
+  pid_t p_id = fork();
+    if (p_id == -1) {
+      printf(" (fork failed)\n");
+    }
+    else if (p_id == 0) {
+      if (strcmp(childargv[0], "exit") == 0) {
+         do_exit();
+      }
+      freopen(filein, "r", stdin);
+      freopen(fileout, "w", stdout);
+      if (-1 == execvp(childargv[0], childargv)) {
+        printf("Error: Command not found.\n");
+        _Exit(EXIT_FAILURE);
+      }
+    }
+    else {
+      waitpid(p_id, NULL, 0);
+    } 
+  return;
+}
+
 
 void parse_argument_array(int *childargc, char* childargv[]) 
 {
@@ -133,11 +224,49 @@ void parse_argument_array(int *childargc, char* childargv[])
   }
   int j = 0;
   for (int i = 0; i < *childargc; i++) {
+    if (strcmp(childargv[i], "") == 0)
+      continue;
     if (strcmp(childargv[i], "\n") == 0) {
       temp_array[j] = NULL;
-      execute(temp_array);
+      if (temp_array[0] != NULL) {
+        execute(temp_array);
+      }
       print_prompt();
       j=0;
+    }
+    else if (strcmp(childargv[i], "<") == 0) {
+      if (strcmp(childargv[i+2], ">") == 0) {
+      	temp_array[j] = NULL;
+	      if (temp_array[0] != NULL) {
+	        execute_with_input_and_output_redir(temp_array, childargv[i+1], childargv[i+3]);
+	      }
+	      j=0;
+	      i++; 
+      }
+      else {
+	      temp_array[j] = NULL;
+	      if (temp_array[0] != NULL) {
+	        execute_with_input_redir(temp_array, childargv[i+1]);
+	      }
+	      j=0;
+	      i++; 
+	  }
+    }
+    else if (strcmp(childargv[i], ">") == 0) {
+      temp_array[j] = NULL;
+      if (temp_array[0] != NULL) {
+        execute_with_output_redir(temp_array, childargv[i+1]);
+      }
+      j=0;
+      i++; 
+    }
+    else if (strcmp(childargv[i], "2>") == 0) {
+      temp_array[j] = NULL;
+      if (temp_array[0] != NULL) {
+        execute_with_error_redir(temp_array, childargv[i+1]);
+      }
+      j=0;
+      i++; 
     }
     else {
       temp_array[j] = childargv[i];
