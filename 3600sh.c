@@ -26,6 +26,11 @@ int main(int argc, char*argv[]) {
   char *childargv[MAXARGS];
   int childargc;
 
+  pid_t pidsInBackground;
+  pidsInBackground = (pid_t *)calloc(1, sizeof(pid_t));
+  pids[0] = -1; // There are no pids, but 0 would've meant it was a child.
+
+
   // Main loop that reads a command and executes it
   while (1) {         
     // You should issue the prompt here
@@ -39,9 +44,16 @@ int main(int argc, char*argv[]) {
         }
     }
     parse_argument_array(&childargc, childargv);
+
     do_exit();
   }
 
+  // Wait for all the background process pids
+  int pidPlace = 0;
+  for(pidPlace; pidsInBackground[pidPlace] != -1; pidPlace++) {
+    waitpid(pidsInBackground[pidPlace], 0, 0);
+  }
+  free(pidsInBackground);
   
   return 0;
 }
