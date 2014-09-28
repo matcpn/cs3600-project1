@@ -100,6 +100,13 @@ char* getcmd(char* beginning, char** end_of_cmd, char *argv[], int *argcp)
   while (*beginning == ' ')
     beginning++; //get rid of spaces
   while ( *end != '\0' && *end != ' ' ) {
+  	if (*end == '\\') {
+  		//this will get rid of slash and move everything to fix it
+  		move_string(end);
+  		if (*end == 't') {
+  			*end = '\t';
+  		}
+  	}
     if (*end == '\n') {
       *end = '\0';
       argv[*argcp] = calloc(100, sizeof(char));
@@ -138,6 +145,16 @@ void execute(char* childargv[])
       waitpid(p_id, NULL, 0);
     } 
   return;
+}
+
+void move_string(char* startingLoc) 
+{
+	char* cmd = startingLoc;
+	while (*cmd != '\0' && *cmd != '\n') {
+		*cmd = *(cmd + 1);
+		cmd++;
+	}
+	*cmd = '\0'; 
 }
 
 void execute_with_output_redir(char* childargv[], char* file) 

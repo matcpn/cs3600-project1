@@ -30,5 +30,6 @@ char* getcmd(char* beginning, char** end_of_cmd, char *argv[], int *argcp);
 void execute(char* childargv[]);
 void parse_argument_array(int *childargc, char* childargv[]);
 void print_prompt();
+void move_string(char* startingLoc);
 
 #endif 
