@@ -13,7 +13,7 @@
 #define USE(x) (x) = (x)
 #define MAX_HOST_CHARS 64
 #define MAX_LINE_SIZE 200 
-#define MAXARGS 20
+#define MAXARGS 30
 
 int main(int argc, char*argv[]) {
   // Code which sets stdout to be unbuffered
@@ -24,11 +24,12 @@ int main(int argc, char*argv[]) {
   
   char *cmd = calloc(MAX_LINE_SIZE, sizeof(char));
   char *childargv[MAXARGS];
-  int childargc;
+  int childargc = 0;
+  int ampersand = 0;
 
-  pid_t pidsInBackground;
+  pid_t *pidsInBackground;
   pidsInBackground = (pid_t *)calloc(1, sizeof(pid_t));
-  pids[0] = -1; // There are no pids, but 0 would've meant it was a child.
+  pidsInBackground[0] = -1; // There are no pids, but 0 would've meant it was a child.
 
 
   // Main loop that reads a command and executes it
@@ -43,17 +44,18 @@ int main(int argc, char*argv[]) {
         	*(cmd + i) = '\0';
         }
     }
-    parse_argument_array(&childargc, childargv);
+    parse_argument_array(&childargc, childargv, &ampersand, &pidsInBackground);
 
-    do_exit();
+do_exit();
+	  // Wait for all the background process pids
+	  int pidPlace = 0;
+	  for( ; pidsInBackground[pidPlace] != -1; pidPlace++) {
+	    waitpid(pidsInBackground[pidPlace], 0, 0);
+	  }
+	  free(pidsInBackground);
+    
+      exit(0);
   }
-
-  // Wait for all the background process pids
-  int pidPlace = 0;
-  for(pidPlace; pidsInBackground[pidPlace] != -1; pidPlace++) {
-    waitpid(pidsInBackground[pidPlace], 0, 0);
-  }
-  free(pidsInBackground);
   
   return 0;
 }
@@ -62,11 +64,7 @@ int main(int argc, char*argv[]) {
 //
 void do_exit() {
   
-  
-  // Wait for all children to exit, then exit
-  while (wait(NULL) > 0) {}
   printf("So long and thanks for all the fish!\n");
-  exit(0);
 }
 
 void print_prompt() {
@@ -106,6 +104,20 @@ char* getcmd(char* beginning, char** end_of_cmd, char *argv[], int *argcp)
   		if (*end == 't') {
   			*end = '\t';
   		}
+  		else if (*end == ' ') {
+
+  		}
+  		else if (*end == '&') {
+
+  		}
+  		else if (*end == '\\') {
+
+  		}
+  		else {
+  			printf("Error: Unrecognized escape sequence.");
+  			argv[0] = NULL;
+  			return "";
+  		}
   	}
     if (*end == '\n') {
       *end = '\0';
@@ -126,7 +138,17 @@ char* getcmd(char* beginning, char** end_of_cmd, char *argv[], int *argcp)
   return beginning; //begin is now the argument/flag without any spaces
 }
 
-void execute(char* childargv[]) 
+void move_string(char* startingLoc) 
+{
+	char* cmd = startingLoc;
+	while (*cmd != '\0' && *cmd != '\n') {
+		*cmd = *(cmd + 1);
+		cmd++;
+	}
+	*cmd = '\0'; 
+}
+
+void execute(char* childargv[], int* ampersand, pid_t *pidsInBackground[]) 
 {
   pid_t p_id = fork();
     if (p_id == -1) {
@@ -142,22 +164,31 @@ void execute(char* childargv[])
       }
     }
     else {
-      waitpid(p_id, NULL, 0);
+    	if (*ampersand) {
+    			//find where the last pids in the list is
+      		int i = 0;
+      		for ( ; (*pidsInBackground)[i] != -1; i++) {
+      			//just loop and set i to be the last element
+      		}
+      		pid_t *temp = *pidsInBackground;
+			*pidsInBackground = (pid_t *)calloc(i+2, sizeof(pid_t));
+			(*pidsInBackground)[0] = p_id;
+			for (i = 0; temp[i] != -1; i++) {
+				(*pidsInBackground)[i+1] = temp[i];
+			}
+			(*pidsInBackground)[i+1] = -1;
+
+			free(temp);
+    	}
+    	else {
+   			waitpid(p_id, NULL, 0);
+  		}
     } 
   return;
 }
 
-void move_string(char* startingLoc) 
-{
-	char* cmd = startingLoc;
-	while (*cmd != '\0' && *cmd != '\n') {
-		*cmd = *(cmd + 1);
-		cmd++;
-	}
-	*cmd = '\0'; 
-}
 
-void execute_with_output_redir(char* childargv[], char* file) 
+void execute_with_output_redir(char* childargv[], char* file, int* ampersand, pid_t *pidsInBackground[]) 
 {
   pid_t p_id = fork();
     if (p_id == -1) {
@@ -174,12 +205,30 @@ void execute_with_output_redir(char* childargv[], char* file)
       }
     }
     else {
-      waitpid(p_id, NULL, 0);
+      if (*ampersand) {
+      		//find where the last pids in the list is
+      		int i = 0;
+      		for ( ; (*pidsInBackground)[i] != -1; i++) {
+      			//just loop and set i to be the last element
+      		}
+      		pid_t *temp = *pidsInBackground;
+			*pidsInBackground = (pid_t *)calloc(i+2, sizeof(pid_t));
+			(*pidsInBackground)[0] = p_id;
+			for (i = 0; temp[i] != -1; i++) {
+				(*pidsInBackground)[i+1] = temp[i];
+			}
+			(*pidsInBackground)[i+1] = -1;
+
+			free(temp);
+    	}
+    	else {
+   			waitpid(p_id, NULL, 0);
+  		}
     } 
   return;
 }
 
-void execute_with_input_redir(char* childargv[], char* file) 
+void execute_with_input_redir(char* childargv[], char* file, int* ampersand, pid_t *pidsInBackground[]) 
 {
   pid_t p_id = fork();
     if (p_id == -1) {
@@ -196,12 +245,30 @@ void execute_with_input_redir(char* childargv[], char* file)
       }
     }
     else {
-      waitpid(p_id, NULL, 0);
+      if (*ampersand) {
+      		//find where the last pids in the list is
+      		int i = 0;
+      		for ( ; (*pidsInBackground)[i] != -1; i++) {
+      			//just loop and set i to be the last element
+      		}
+      		pid_t *temp = *pidsInBackground;
+			*pidsInBackground = (pid_t *)calloc(i+2, sizeof(pid_t));
+			(*pidsInBackground)[0] = p_id;
+			for (i = 0; temp[i] != -1; i++) {
+				(*pidsInBackground)[i+1] = temp[i];
+			}
+			(*pidsInBackground)[i+1] = -1;
+
+			free(temp);
+    	}
+    	else {
+   			waitpid(p_id, NULL, 0);
+  		}
     } 
   return;
 }
 
-void execute_with_error_redir(char* childargv[], char* file) 
+void execute_with_error_redir(char* childargv[], char* file, int* ampersand, pid_t *pidsInBackground[]) 
 {
   pid_t p_id = fork();
     if (p_id == -1) {
@@ -218,12 +285,30 @@ void execute_with_error_redir(char* childargv[], char* file)
       }
     }
     else {
-      waitpid(p_id, NULL, 0);
+      if (*ampersand) {
+      		//find where the last pids in the list is
+      		int i = 0;
+      		for ( ; (*pidsInBackground)[i] != -1; i++) {
+      			//just loop and set i to be the last element
+      		}
+      		pid_t *temp = *pidsInBackground;
+			*pidsInBackground = (pid_t *)calloc(i+2, sizeof(pid_t));
+			(*pidsInBackground)[0] = p_id;
+			for (i = 0; temp[i] != -1; i++) {
+				(*pidsInBackground)[i+1] = temp[i];
+			}
+			(*pidsInBackground)[i+1] = -1;
+
+			free(temp);
+    	}
+    	else {
+   			waitpid(p_id, NULL, 0);
+  		}
     } 
   return;
 }
 
-void execute_with_input_and_output_redir(char* childargv[], char* filein, char* fileout) 
+void execute_with_input_and_output_redir(char* childargv[], char* filein, char* fileout, int* ampersand, pid_t *pidsInBackground[]) 
 {
   pid_t p_id = fork();
     if (p_id == -1) {
@@ -241,14 +326,78 @@ void execute_with_input_and_output_redir(char* childargv[], char* filein, char* 
       }
     }
     else {
-      waitpid(p_id, NULL, 0);
+      if (*ampersand) {
+      		//find where the last pids in the list is
+      		int i = 0;
+      		for ( ; (*pidsInBackground)[i] != -1; i++) {
+      			//just loop and set i to be the last element
+      		}
+      		pid_t *temp = *pidsInBackground;
+			*pidsInBackground = (pid_t *)calloc(i+2, sizeof(pid_t));
+			(*pidsInBackground)[0] = p_id;
+			for (i = 0; temp[i] != -1; i++) {
+				(*pidsInBackground)[i+1] = temp[i];
+			}
+			(*pidsInBackground)[i+1] = -1;
+
+			free(temp);
+    	}
+    	else {
+   			waitpid(p_id, NULL, 0);
+  		}
     } 
   return;
 }
 
+void check_for_valid_ampersand(char* childargv[], int* ampersand) {
+	int i = 0;
+	//go through ever element in the array
+	while (childargv[i] != NULL) {
+		//if an element is an ampersand
+		if (strcmp(childargv[i], "&") == 0) {
+			//check if it is the last element 
+			if (childargv[i + 1] == NULL) {
+				//if it is the last ampersand, we have a valid ampersand and need to run it in the background
+				*ampersand = 1;
+				childargv[i] = NULL;
+				return;
+			}
+			else {
+				//if it it not a valid ampersand. we print the error
+				printf("Error: Invalid Syntax.");
+				*ampersand = 0;
+				return;
+			}
+		}
+		//if and element is not an ampersand, does it contain an ampersand?
+		else {
+			char* currentLetter = childargv[i];
+			while (*currentLetter != '\0' && *currentLetter != '\n') {
+				//if current letter is an ampersand
+				if (*currentLetter == '&')
+				{
+					//if current letter is the last in the argument
+					if (*(currentLetter + 1) == '\0') {
+						*ampersand = 1;
+						*currentLetter = '\0';
+						return;
+					}
+				}
+				currentLetter++;
+			}
+		}
+		i++;
+	}
+	*ampersand = 0;
+	return;
+}
 
-void parse_argument_array(int *childargc, char* childargv[]) 
+void parse_argument_array(int *childargc, char* childargv[], int* ampersand, pid_t *pidsInBackground[]) 
 {
+  if (childargv[0] == NULL) {
+  	printf("\n");
+  	return;
+  }
   char *temp_array[MAXARGS];
   for (int i = 0; i < MAXARGS; i++) {
     temp_array[i] = NULL;
@@ -260,7 +409,8 @@ void parse_argument_array(int *childargc, char* childargv[])
     if (strcmp(childargv[i], "\n") == 0) {
       temp_array[j] = NULL;
       if (temp_array[0] != NULL) {
-        execute(temp_array);
+      	check_for_valid_ampersand(temp_array, ampersand);
+        execute(temp_array, ampersand, pidsInBackground);
       }
       print_prompt();
       j=0;
@@ -269,7 +419,8 @@ void parse_argument_array(int *childargc, char* childargv[])
       if (strcmp(childargv[i+2], ">") == 0) {
       	temp_array[j] = NULL;
 	      if (temp_array[0] != NULL) {
-	        execute_with_input_and_output_redir(temp_array, childargv[i+1], childargv[i+3]);
+	      	check_for_valid_ampersand(temp_array, ampersand);
+	        execute_with_input_and_output_redir(temp_array, childargv[i+1], childargv[i+3], ampersand, pidsInBackground);
 	      }
 	      j=0;
 	      i++; 
@@ -277,7 +428,8 @@ void parse_argument_array(int *childargc, char* childargv[])
       else {
 	      temp_array[j] = NULL;
 	      if (temp_array[0] != NULL) {
-	        execute_with_input_redir(temp_array, childargv[i+1]);
+	      	check_for_valid_ampersand(temp_array, ampersand);
+	        execute_with_input_redir(temp_array, childargv[i+1], ampersand, pidsInBackground);
 	      }
 	      j=0;
 	      i++; 
@@ -286,7 +438,8 @@ void parse_argument_array(int *childargc, char* childargv[])
     else if (strcmp(childargv[i], ">") == 0) {
       temp_array[j] = NULL;
       if (temp_array[0] != NULL) {
-        execute_with_output_redir(temp_array, childargv[i+1]);
+      	check_for_valid_ampersand(temp_array, ampersand);
+        execute_with_output_redir(temp_array, childargv[i+1], ampersand, pidsInBackground);
       }
       j=0;
       i++; 
@@ -294,7 +447,8 @@ void parse_argument_array(int *childargc, char* childargv[])
     else if (strcmp(childargv[i], "2>") == 0) {
       temp_array[j] = NULL;
       if (temp_array[0] != NULL) {
-        execute_with_error_redir(temp_array, childargv[i+1]);
+      	check_for_valid_ampersand(temp_array, ampersand);
+        execute_with_error_redir(temp_array, childargv[i+1], ampersand, pidsInBackground);
       }
       j=0;
       i++; 
@@ -305,7 +459,8 @@ void parse_argument_array(int *childargc, char* childargv[])
     }
   }
   if (strcmp(childargv[*childargc - 1], "\n") != 0) {
-    execute(temp_array);
+  	check_for_valid_ampersand(temp_array, ampersand);
+    execute(temp_array, ampersand, pidsInBackground);
   }
   return;
 }
