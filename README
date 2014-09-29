@@ -1,1 +1,29 @@
 # 3600 Shell
+Matthew Capone and Alfred Ababio
+
+Our approach to this shell was building incremental parts and refactoring after successful passes. It was written in a test-driven development style.
+
+Our high-level design is the shell will read in raw input, parse it into a command and arguments and then throw the command and arguments into our execute functions that will allow the shell to send its output to the correct file descriptors. Before being sent to the execute functions, we do checking for escape characters and ampersands to make sure we execute the command correctly.
+
+### Challenges
+
+The first challenge we faced was parsing the raw input to get the arguments. We were able to do this with no challenges because both of us understood that for the more general commands that it was easy enough to split the char* by a space delimiter and save the first char received as the command and everything after as flags and arguments.
+
+The next challenge we had was understanding the test script. We misinterpreted the perl syntax and thought that the shell was supposed to understand '\n' as a new line character and then execute the command. The correct interpretation was that the perl interpreter will send '\n' as a new line to the shell, but the shell understands that as the same as a user pressing the "ENTER" key. After realizing this, our milestone tests passed.
+
+Input and Output redirection was hard for us, because we had the first idea to do some partial evaluation for the '>' and '<' characters and then combine the outputs. We quickly realized the flawed logic there and re-thought our approach. The second approach we did was handle the four cases of I/O redirection; commands with '>', with '<', with '>' then '<' and finally '<' then '>'. This gave us four seperate execution functions with a line or two different. We chose not to refactor these and combine them because it would just become one large function with four if statement clauses. 
+
+Running background processes was tough because we tried to implement it in a way where every job that was going to be run in the background had its pid added to a global array, and we would just wait on the pids in the array. This did not work initially and ended up causing every command (even ones with no ampersand) to reach Segmentation faults. The segmentation faults happened because childargc was not being set to the correct value. We ended up using another flag to keep track of the ampersands and were able to compare that flag and the number of args in childargv to childargc to fix the segmentation faults.
+
+Our last challenge was after implementing all basic functionality. The many stress tests that would fail.
+
+This required us to take a much harder look at our code to fine tune it. This started with us looking at how we get our arguments. We realized that we were setting the end of command pointer to be before the beginning of it to eat all the spaces. This worked as long as there weren't spaces before the command. Fixing this handled both cases and allowed us to continue.
+
+### Supported Features:
+Background Processes
+Input/Output Redirection
+Escape Characters
+Shell commands
+Meaningful Error Messages
+
+We tested our code by running it against dummy input files with single tests from the test script. If we could not find the specific cause for the test to fail just by comparing inputs, we would run it through GDB.
