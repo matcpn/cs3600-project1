@@ -19,6 +19,9 @@ Our last challenge was after implementing all basic functionality. The many stre
 
 This required us to take a much harder look at our code to fine tune it. This started with us looking at how we get our arguments. We realized that we were setting the end of command pointer to be before the beginning of it to eat all the spaces. This worked as long as there weren't spaces before the command. Fixing this handled both cases and allowed us to continue.
 
+Our last challenge was realizing that we did not handle escape characters correctly after certain tests had failed. The reason for this is that we did not correctly update the pointer after attempting to eat the '\t' character. We fixed this by replacing the '\t' with a space, that our shell would correctly eat, and then decrementing the pointer so that it would be before the space and eat it.
+
+
 ### Supported Features:
 Background Processes
 Input/Output Redirection
