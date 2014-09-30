@@ -67,6 +67,7 @@ void do_exit() {
 	printf("So long and thanks for all the fish!\n");
 }
 
+// Function that prints the prompt
 void print_prompt() {
 	char dir[PATH_MAX];
 	char host[MAX_HOST_CHARS];
@@ -76,6 +77,9 @@ void print_prompt() {
 	printf("%s@%s:%s> ", getenv("USER"), host, dir);
 }
 
+// Function to get the arguments and put them in their correct places
+// Cmd is the raw input from stdin
+// argcp corresponds to argc and argv[] is argv
 void getargs(char *cmd, int *argcp, char *argv[])
 {
 	char* end;
@@ -85,10 +89,11 @@ void getargs(char *cmd, int *argcp, char *argv[])
 		strcpy(argv[*argcp],cmd);
 		(*argcp)++;
        cmd = end + 1; // get past the '\0'
-   }
+     }
   argv[*argcp] = NULL; //put a null after the last argument
 }
 
+// Gets the command, and sets it to be childargv[0]
 char* getcmd(char* beginning, char** end_of_cmd, char *argv[], int *argcp) 
 {
 	while (*beginning == ' ')
@@ -98,6 +103,7 @@ char* getcmd(char* beginning, char** end_of_cmd, char *argv[], int *argcp)
   	if (*end == '\\') {
   		//this will get rid of slash and move everything to fix it
   		move_string(end);
+      // Escape Character Handling
   		if (*end == 't') {
   			*end = '\t';
   		}
@@ -115,7 +121,10 @@ char* getcmd(char* beginning, char** end_of_cmd, char *argv[], int *argcp)
   			argv[0] = NULL;
   			return "";
   		}
+      // End Escape character handling
   	}
+    // If its a tab character, replace it with a space and decrement the pointer
+    // So the shell eats the space
   	else if (*end == '\t') {
   		*end = ' ';
   		end--;
@@ -131,14 +140,15 @@ char* getcmd(char* beginning, char** end_of_cmd, char *argv[], int *argcp)
   	}
     end++; // find the end of the command (either a space, null, or newline)
 
-}
-if (end == beginning)
+  }
+  if (end == beginning)
     return NULL; //all words parsed 
   *end = '\0'; //put a null terminator after the command
   *end_of_cmd = end;
   return beginning; //begin is now the argument/flag without any spaces
 }
 
+// "Eats" leading whitespace by moving the pointers one slot back each time
 void move_string(char* startingLoc) 
 {
 	char* cmd = startingLoc;
@@ -149,6 +159,7 @@ void move_string(char* startingLoc)
 	*cmd = '\0'; 
 }
 
+// Will run execute if there are no ampersands or special characters
 void execute(char* childargv[], int* ampersand, pid_t *pidsInBackground[]) 
 {
 	pid_t p_id = fork();
@@ -160,6 +171,7 @@ void execute(char* childargv[], int* ampersand, pid_t *pidsInBackground[])
 			do_exit();
 		}
 		else {
+      // Check for errors before running
 			int return_val = execvp(childargv[0], childargv);
 			if (errno == EPERM || errno == EACCES) {
 				printf("Error: Permission denied.\n");
@@ -178,6 +190,7 @@ void execute(char* childargv[], int* ampersand, pid_t *pidsInBackground[])
 			for ( ; (*pidsInBackground)[i] != -1; i++) {
       			//just loop and set i to be the last element
 			}
+      // Re-allocate the pid array to add the pid
 			pid_t *temp = *pidsInBackground;
 			*pidsInBackground = (pid_t *)calloc(i+2, sizeof(pid_t));
 			(*pidsInBackground)[0] = p_id;
@@ -195,7 +208,7 @@ void execute(char* childargv[], int* ampersand, pid_t *pidsInBackground[])
 	return;
 }
 
-
+// Function that handles executing whether or not there's a >
 void execute_with_output_redir(char* childargv[], char* file, int* ampersand, pid_t *pidsInBackground[]) 
 {
 	pid_t p_id = fork();
@@ -310,7 +323,7 @@ void execute_with_error_redir(char* childargv[], char* file, int* ampersand, pid
 			do_exit();
 		}
 		else {
-			if (freopen(file, "w", stderr) == NULL) {
+			if (freopen(file, "w", stderr) == NULL) { // Make sure there's a file to open
 				printf("Error: Unable to open redirection file.\n");
 				_Exit(EXIT_FAILURE);
 			}
@@ -360,7 +373,7 @@ void execute_with_input_and_output_redir(char* childargv[], char* filein, char* 
 			do_exit();
 		}
 		else {
-			if (filein != NULL) {
+			if (filein != NULL) { // As long as there isn't a syntax error, keep running.
 				if (strcmp(filein, "<") == 0 || strcmp(filein, ">") == 0 || strcmp(filein, "2>") == 0 || strcmp(filein, "&") == 0) {
 					printf("Error: Invalid syntax.\n");
 					_Exit(EXIT_FAILURE);
@@ -406,6 +419,8 @@ void execute_with_input_and_output_redir(char* childargv[], char* filein, char* 
 	return;
 }
 
+// Will check for the basic syntax errors that have to do with ampersands in the incorrect
+// positions in the commands
 void check_for_valid_ampersand(char* childargv[], int* ampersand) {
 	int i = 0;
 	//go through ever element in the array
